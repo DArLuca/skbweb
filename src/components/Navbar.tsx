@@ -1,45 +1,17 @@
 import { useState } from "react";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { Link } from "react-router-dom"; // Add this
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { buttonVariants } from "./ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Trophy } from "lucide-react"; // Trophy is a good chess icon
 import { ModeToggle } from "./mode-toggle";
-import { LogoIcon } from "./Icons";
 
-interface RouteProps {
-  href: string;
-  label: string;
-}
-
-const routeList: RouteProps[] = [
-  {
-    href: "#features",
-    label: "Features",
-  },
-  {
-    href: "#testimonials",
-    label: "Testimonials",
-  },
-  {
-    href: "#pricing",
-    label: "Pricing",
-  },
-  {
-    href: "#faq",
-    label: "FAQ",
-  },
+const routeList = [
+  { href: "/meisterschaft", label: "Meisterschaft" },
+  { href: "/verein", label: "Verein" },
+  { href: "/jugend", label: "Jugend" },
+  { href: "/presse", label: "Presse" },
+  { href: "/shop", label: "Shop" },
 ];
 
 export const Navbar = () => {
@@ -49,94 +21,66 @@ export const Navbar = () => {
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
           <NavigationMenuItem className="font-bold flex">
-            <a
-              rel="noreferrer noopener"
-              href="/"
-              className="ml-2 font-bold text-xl flex"
-            >
-              <LogoIcon />
-              ShadcnUI/React
-            </a>
+            {/* BRAND LOGO */}
+            <Link to="/" className="ml-2 font-bold text-xl flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-primary" />
+              SKB
+            </Link>
           </NavigationMenuItem>
 
-          {/* mobile */}
+          {/* MOBILE NAVIGATION */}
           <span className="flex md:hidden">
             <ModeToggle />
-
-            <Sheet
-              open={isOpen}
-              onOpenChange={setIsOpen}
-            >
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger className="px-2">
-                <Menu
-                  className="flex md:hidden h-5 w-5"
-                  onClick={() => setIsOpen(true)}
-                >
-                  <span className="sr-only">Menu Icon</span>
-                </Menu>
+                <Menu className="flex md:hidden h-5 w-5" onClick={() => setIsOpen(true)} />
               </SheetTrigger>
-
               <SheetContent side={"left"}>
                 <SheetHeader>
-                  <SheetTitle className="font-bold text-xl">
-                    Shadcn/React
-                  </SheetTitle>
+                  <SheetTitle className="font-bold text-xl text-left">SKB</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
-                  {routeList.map(({ href, label }: RouteProps) => (
-                    <a
-                      rel="noreferrer noopener"
+                  {routeList.map(({ href, label }) => (
+                    <Link
                       key={label}
-                      href={href}
+                      to={href}
                       onClick={() => setIsOpen(false)}
                       className={buttonVariants({ variant: "ghost" })}
                     >
                       {label}
-                    </a>
+                    </Link>
                   ))}
-                  <a
-                    rel="noreferrer noopener"
-                    href="https://github.com/leoMirandaa/shadcn-landing-page.git"
-                    target="_blank"
-                    className={`w-[110px] border ${buttonVariants({
-                      variant: "secondary",
-                    })}`}
+                  <Link
+                    to="/mitglied-werden"
+                    className={`w-[130px] border ${buttonVariants({ variant: "default" })}`}
                   >
-                    <GitHubLogoIcon className="mr-2 w-5 h-5" />
-                    Github
-                  </a>
+                    Mitglied werden
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
           </span>
 
-          {/* desktop */}
+          {/* DESKTOP NAVIGATION */}
           <nav className="hidden md:flex gap-2">
-            {routeList.map((route: RouteProps, i) => (
-              <a
-                rel="noreferrer noopener"
-                href={route.href}
+            {routeList.map((route, i) => (
+              <Link
+                to={route.href}
                 key={i}
-                className={`text-[17px] ${buttonVariants({
-                  variant: "ghost",
-                })}`}
+                className={`text-[17px] ${buttonVariants({ variant: "ghost" })}`}
               >
                 {route.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
           <div className="hidden md:flex gap-2">
-            <a
-              rel="noreferrer noopener"
-              href="https://github.com/leoMirandaa/shadcn-landing-page.git"
-              target="_blank"
-              className={`border ${buttonVariants({ variant: "secondary" })}`}
+            <Link
+              to="/mitglied-werden"
+              className={`border ${buttonVariants({ variant: "default" })}`}
             >
-              <GitHubLogoIcon className="mr-2 w-5 h-5" />
-              Github
-            </a>
-
+              Mitglied werden
+            </Link>
             <ModeToggle />
           </div>
         </NavigationMenuList>
