@@ -11,7 +11,7 @@ const routeList = [
   { href: "/meisterschaft", label: "Meisterschaft" },
   { href: "/verein", label: "Verein" },
   { href: "/jugend", label: "Jugend" },
-  { href: "/presse", label: "Presse" },
+  { href: "/agenda", label: "Agenda" },
   { href: "/shop", label: "Shop" },
 ];
 
