@@ -9,54 +9,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar, ChevronDown, ArrowLeft } from "lucide-react";
-
-interface Article {
-  title: string;
-  author: string;
-  date: string;
-  slug: string;
-  content: string;
-}
-
-const tournamentNames: Record<string, string> = {
-  "sgm": "Schweizerische Gruppemeisterschaft (SGM)",
-  "smm": "Schweizerische Mannschaftsmeisterschaft (SMM)",
-  "klub-meisterschaft": "Klub-Meisterschaft",
-  "bvm": "Berner Vereinsmeisterschaft (BVM)",
-};
-
-const availableYears = [2026, 2025, 2024, 2023];
+import { TOURNAMENTS, AVAILABLE_YEARS, Article, TournamentId } from "@/types";
+import { fetchArticles } from "@/lib/markdown";
 
 export default function TournamentPage() {
   const { tournament } = useParams<{ tournament: string }>();
-  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedYear, setSelectedYear] = useState(AVAILABLE_YEARS[0]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const tournamentInfo = tournament ? TOURNAMENTS[tournament as TournamentId] : null;
+
   useEffect(() => {
-    loadArticles();
+    if (tournament) {
+      loadData();
+    }
   }, [tournament, selectedYear]);
 
-  const loadArticles = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      // Dynamically import all markdown files for the selected tournament and year
-      const articleModules = import.meta.glob("/content/**/*.md", { query: "?raw", import: "default" });
-      const loadedArticles: Article[] = [];
-
-      for (const path in articleModules) {
-        if (path.includes(`/${tournament}/${selectedYear}/`)) {
-          const content = await articleModules[path]();
-          const article = parseMarkdown(content as string);
-          if (article) {
-            loadedArticles.push(article);
-          }
-        }
-      }
-
-      // Sort articles by date (newest first)
-      loadedArticles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setArticles(loadedArticles);
+      const data = await fetchArticles(tournament!, selectedYear);
+      setArticles(data);
     } catch (error) {
       console.error("Error loading articles:", error);
     } finally {
@@ -64,33 +38,16 @@ export default function TournamentPage() {
     }
   };
 
-  const parseMarkdown = (content: string): Article | null => {
-    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
-    const match = content.match(frontmatterRegex);
-
-    if (!match) return null;
-
-    const frontmatter = match[1];
-    const body = match[2];
-
-    const metadata: Record<string, string> = {};
-    frontmatter.split("\n").forEach((line) => {
-      const [key, ...valueParts] = line.split(":");
-      if (key && valueParts.length) {
-        metadata[key.trim()] = valueParts.join(":").trim().replace(/^["']|["']$/g, "");
-      }
-    });
-
-    return {
-      title: metadata.title || "Untitled",
-      author: metadata.author || "Unknown",
-      date: metadata.date || "",
-      slug: metadata.slug || "",
-      content: body,
-    };
-  };
-
-  const tournamentName = tournament ? tournamentNames[tournament] : "";
+  if (!tournamentInfo) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold">Turnier nicht gefunden</h1>
+        <Link to="/meisterschaft" className="text-primary hover:underline mt-4 inline-block">
+          Zurück zur Übersicht
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -102,22 +59,29 @@ export default function TournamentPage() {
           </Button>
         </Link>
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{tournamentName}</h1>
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">{tournamentInfo.fullName}</h1>
+            <p className="text-muted-foreground">{tournamentInfo.description}</p>
+          </div>
+          
           <div className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-[180px]">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Jahr: {selectedYear}
-                  <ChevronDown className="ml-auto h-4 w-4" />
+                <Button variant="outline" className="w-[180px] justify-between">
+                  <span className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Jahr: {selectedYear}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {availableYears.map((year) => (
+              <DropdownMenuContent align="end">
+                {AVAILABLE_YEARS.map((year) => (
                   <DropdownMenuItem
                     key={year}
                     onClick={() => setSelectedYear(year)}
+                    className={selectedYear === year ? "bg-accent" : ""}
                   >
                     {year}
                   </DropdownMenuItem>
@@ -128,37 +92,44 @@ export default function TournamentPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Lade Artikel...</p>
+          <div className="grid gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader className="h-32 bg-muted rounded-t-lg" />
+              </Card>
+            ))}
           </div>
         ) : articles.length === 0 ? (
-          <div className="text-center py-12">
+          <Card className="p-12 text-center border-dashed">
             <p className="text-muted-foreground">
-              Keine Artikel für {selectedYear} verfügbar.
+              Keine Artikel für {selectedYear} in dieser Kategorie verfügbar.
             </p>
-          </div>
+          </Card>
         ) : (
           <div className="space-y-6">
-            {articles.map((article, index) => (
+            {articles.map((article) => (
               <Link
-                key={index}
+                key={article.slug}
                 to={`/meisterschaft/${tournament}/${selectedYear}/${article.slug}`}
               >
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className="hover:shadow-md transition-all hover:border-primary/20 cursor-pointer">
                   <CardHeader>
                     <CardTitle className="text-2xl">{article.title}</CardTitle>
-                    <CardDescription>
-                      <span className="font-medium">{article.author}</span> • {" "}
-                      {new Date(article.date).toLocaleDateString("de-CH", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                    <CardDescription className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{article.author}</span>
+                      <span className="text-muted-foreground opacity-50">•</span>
+                      <span>
+                        {new Date(article.date).toLocaleDateString("de-CH", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground line-clamp-3">
-                      {article.content.substring(0, 200)}...
+                    <p className="text-muted-foreground line-clamp-2 leading-relaxed">
+                      {article.content.substring(0, 200).replace(/[#*`]/g, "")}...
                     </p>
                   </CardContent>
                 </Card>
