@@ -34,7 +34,7 @@ const tournaments: Tournament[] = [
 
 export default function Meisterschaft() {
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container py-16">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Meisterschaften</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -42,7 +42,7 @@ export default function Meisterschaft() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {tournaments.map((tournament) => (
           <Link
             key={tournament.id}

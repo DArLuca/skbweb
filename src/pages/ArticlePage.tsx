@@ -88,98 +88,96 @@ export default function ArticlePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="max-w-4xl mx-auto">
-        <Link to={`/meisterschaft/${tournament}`}>
-          <Button variant="ghost" className="mb-8 hover:bg-accent group">
-            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Zurück zu {tournamentInfo.name}
-          </Button>
-        </Link>
+    <div className="container py-16">
+      <Link to={`/meisterschaft/${tournament}`}>
+        <Button variant="ghost" className="mb-8 hover:bg-accent group">
+          <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Zurück zu {tournamentInfo.name}
+        </Button>
+      </Link>
 
-        {article.image && (
-          <div className="mb-12 rounded-2xl overflow-hidden aspect-video shadow-2xl">
-            <img 
-              src={article.image} 
-              alt={article.title} 
-              className="w-full h-full object-cover"
-            />
+      {article.image && (
+        <div className="mb-12 rounded-2xl overflow-hidden aspect-video shadow-2xl">
+          <img 
+            src={article.image} 
+            alt={article.title} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      <article className="prose prose-slate lg:prose-lg dark:prose-invert max-w-none">
+        <header className="mb-12 pb-8 border-b border-border/60">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
+            {article.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-primary/10 rounded-full">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <span>{article.author}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-primary/10 rounded-full">
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
+              <span>
+                {new Date(article.date).toLocaleDateString("de-CH", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <div className="article-content">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: (props) => <h1 className="text-3xl font-bold mt-12 mb-6" {...props} />,
+              h2: (props) => <h2 className="text-2xl font-bold mt-10 mb-4 border-l-4 border-primary/40 pl-4" {...props} />,
+              h3: (props) => <h3 className="text-xl font-bold mt-8 mb-3" {...props} />,
+              p: (props) => <p className="mb-6 leading-relaxed text-muted-foreground/90" {...props} />,
+              ul: (props) => <ul className="list-disc pl-6 mb-6 space-y-2" {...props} />,
+              ol: (props) => <ol className="list-decimal pl-6 mb-6 space-y-2" {...props} />,
+              blockquote: (props) => (
+                <blockquote className="border-l-4 border-primary bg-muted/30 px-6 py-4 italic rounded-r-lg my-8" {...props} />
+              ),
+              table: (props) => (
+                <div className="my-8 overflow-hidden rounded-lg border border-border shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse bg-card text-left text-sm" {...props} />
+                  </div>
+                </div>
+              ),
+              thead: (props) => <thead className="bg-muted/50 font-semibold" {...props} />,
+              th: (props) => <th className="px-6 py-4 border-b border-border" {...props} />,
+              td: (props) => <td className="px-6 py-4 border-b border-border/40" {...props} />,
+            }}
+          >
+            {article.content}
+          </ReactMarkdown>
+        </div>
+
+        {/* Chess Game Viewer */}
+        {(pgnData || pgnError) && (
+          <div className="mt-16 pt-16 border-t border-border/60">
+            {pgnError ? (
+              <div className="p-6 bg-destructive/10 text-destructive rounded-xl border border-destructive/20">
+                <h3 className="font-bold flex items-center gap-2 mb-2">
+                  Partie konnte nicht geladen werden
+                </h3>
+                <p className="text-sm opacity-90">{pgnError}</p>
+              </div>
+            ) : (
+              pgnData && <ChessGameViewer pgn={pgnData} />
+            )}
           </div>
         )}
-
-        <article className="prose prose-slate lg:prose-lg dark:prose-invert max-w-none">
-          <header className="mb-12 pb-8 border-b border-border/60">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
-              {article.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-full">
-                  <User className="h-4 w-4 text-primary" />
-                </div>
-                <span>{article.author}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-full">
-                  <Calendar className="h-4 w-4 text-primary" />
-                </div>
-                <span>
-                  {new Date(article.date).toLocaleDateString("de-CH", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-            </div>
-          </header>
-
-          <div className="article-content">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: (props) => <h1 className="text-3xl font-bold mt-12 mb-6" {...props} />,
-                h2: (props) => <h2 className="text-2xl font-bold mt-10 mb-4 border-l-4 border-primary/40 pl-4" {...props} />,
-                h3: (props) => <h3 className="text-xl font-bold mt-8 mb-3" {...props} />,
-                p: (props) => <p className="mb-6 leading-relaxed text-muted-foreground/90" {...props} />,
-                ul: (props) => <ul className="list-disc pl-6 mb-6 space-y-2" {...props} />,
-                ol: (props) => <ol className="list-decimal pl-6 mb-6 space-y-2" {...props} />,
-                blockquote: (props) => (
-                  <blockquote className="border-l-4 border-primary bg-muted/30 px-6 py-4 italic rounded-r-lg my-8" {...props} />
-                ),
-                table: (props) => (
-                  <div className="my-8 overflow-hidden rounded-lg border border-border shadow-sm">
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse bg-card text-left text-sm" {...props} />
-                    </div>
-                  </div>
-                ),
-                thead: (props) => <thead className="bg-muted/50 font-semibold" {...props} />,
-                th: (props) => <th className="px-6 py-4 border-b border-border" {...props} />,
-                td: (props) => <td className="px-6 py-4 border-b border-border/40" {...props} />,
-              }}
-            >
-              {article.content}
-            </ReactMarkdown>
-          </div>
-
-          {/* Chess Game Viewer */}
-          {(pgnData || pgnError) && (
-            <div className="mt-16 pt-16 border-t border-border/60">
-              {pgnError ? (
-                <div className="p-6 bg-destructive/10 text-destructive rounded-xl border border-destructive/20">
-                  <h3 className="font-bold flex items-center gap-2 mb-2">
-                    Partie konnte nicht geladen werden
-                  </h3>
-                  <p className="text-sm opacity-90">{pgnError}</p>
-                </div>
-              ) : (
-                pgnData && <ChessGameViewer pgn={pgnData} />
-              )}
-            </div>
-          )}
-        </article>
-      </div>
+      </article>
     </div>
   );
 }
