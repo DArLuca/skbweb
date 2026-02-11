@@ -1,12 +1,13 @@
-import { Article, TournamentId } from "@/types";
+import { Article, TournamentId, Category } from "@/types";
 
 /**
  * Parses a markdown string into an Article object.
  */
 export const parseArticle = (
   content: string,
-  tournamentId: TournamentId,
-  year: number
+  category: Category,
+  year: number,
+  tournamentId?: TournamentId
 ): Article | null => {
   try {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
@@ -41,7 +42,9 @@ export const parseArticle = (
       date: metadata.date || "",
       slug: metadata.slug,
       chessGame: metadata.chessGame,
+      image: metadata.image,
       content: body,
+      category,
       tournamentId,
       year,
     };
@@ -52,11 +55,12 @@ export const parseArticle = (
 };
 
 /**
- * Loads all articles for a specific tournament and year using Vite's import.meta.glob.
+ * Loads all articles for a specific category and optionally tournament and year.
  */
 export const fetchArticles = async (
-  tournamentId: string,
-  year: number
+  category: Category,
+  year: number,
+  tournamentId?: string
 ): Promise<Article[]> => {
   const articleModules = import.meta.glob("/content/**/*.md", {
     query: "?raw",
@@ -65,11 +69,18 @@ export const fetchArticles = async (
   const loadedArticles: Article[] = [];
 
   for (const path in articleModules) {
-    // Expected path format: /content/tournamentId/year/slug.md
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    if (normalizedPath.includes(`/${tournamentId}/${year}/`)) {
+    
+    let isMatch = false;
+    if (category === "news") {
+      isMatch = normalizedPath.includes(`/news/${year}/`);
+    } else if (category === "meisterschaft" && tournamentId) {
+      isMatch = normalizedPath.includes(`/${tournamentId}/${year}/`);
+    }
+
+    if (isMatch) {
       const content = (await articleModules[path]()) as string;
-      const article = parseArticle(content, tournamentId as TournamentId, year);
+      const article = parseArticle(content, category, year, tournamentId as TournamentId);
       if (article) {
         loadedArticles.push(article);
       }
@@ -79,4 +90,30 @@ export const fetchArticles = async (
   return loadedArticles.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+};
+
+/**
+ * Fetches the latest N news articles across all years.
+ */
+export const fetchLatestNews = async (limit: number = 5): Promise<Article[]> => {
+  const articleModules = import.meta.glob("/content/news/**/*.md", {
+    query: "?raw",
+    import: "default",
+  });
+  const loadedArticles: Article[] = [];
+
+  for (const path in articleModules) {
+    const pathParts = path.split("/");
+    const year = parseInt(pathParts[pathParts.length - 2]);
+    
+    const content = (await articleModules[path]()) as string;
+    const article = parseArticle(content, "news", year);
+    if (article) {
+      loadedArticles.push(article);
+    }
+  }
+
+  return loadedArticles
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit);
 };

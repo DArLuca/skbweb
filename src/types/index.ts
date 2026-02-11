@@ -1,4 +1,5 @@
 export type TournamentId = "sgm" | "smm" | "klub-meisterschaft" | "bvm";
+export type Category = "meisterschaft" | "news";
 
 export interface Tournament {
   id: TournamentId;
@@ -13,7 +14,9 @@ export interface ArticleMetadata {
   date: string;
   slug: string;
   chessGame?: string;
-  tournamentId: TournamentId;
+  image?: string;
+  category: Category;
+  tournamentId?: TournamentId;
   year: number;
 }
 

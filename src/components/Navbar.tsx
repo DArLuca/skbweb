@@ -7,6 +7,7 @@ import { Menu, Trophy } from "lucide-react"; // Trophy is a good chess icon
 import { ModeToggle } from "./mode-toggle";
 
 const routeList = [
+  { href: "/news", label: "News" },
   { href: "/meisterschaft", label: "Meisterschaft" },
   { href: "/verein", label: "Verein" },
   { href: "/jugend", label: "Jugend" },

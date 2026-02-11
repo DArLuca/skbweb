@@ -5,21 +5,19 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { ChessGameViewer } from "@/components/ChessGameViewer";
-import { Article, TOURNAMENTS, TournamentId } from "@/types";
+import { Article } from "@/types";
 import { parseArticle } from "@/lib/markdown";
 
-export default function ArticlePage() {
-  const { tournament, year, slug } = useParams<{ tournament: string; year: string; slug: string }>();
+export default function NewsArticlePage() {
+  const { year, slug } = useParams<{ year: string; slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [pgnData, setPgnData] = useState<string | null>(null);
   const [pgnError, setPgnError] = useState<string | null>(null);
 
-  const tournamentInfo = tournament ? TOURNAMENTS[tournament as TournamentId] : null;
-
   useEffect(() => {
     loadContent();
-  }, [tournament, year, slug]);
+  }, [year, slug]);
 
   const loadContent = async () => {
     setLoading(true);
@@ -27,8 +25,8 @@ export default function ArticlePage() {
     setPgnError(null);
 
     try {
-      const articleModules = import.meta.glob("/content/**/*.md", { query: "?raw", import: "default" });
-      const targetPath = `${tournament}/${year}/${slug}.md`;
+      const articleModules = import.meta.glob("/content/news/**/*.md", { query: "?raw", import: "default" });
+      const targetPath = `news/${year}/${slug}.md`;
       
       let content: string | null = null;
       for (const path in articleModules) {
@@ -39,7 +37,7 @@ export default function ArticlePage() {
       }
 
       if (content) {
-        const parsed = parseArticle(content, "meisterschaft", parseInt(year || "0"), tournament as TournamentId);
+        const parsed = parseArticle(content, "news", parseInt(year || "0"));
         if (parsed) {
           setArticle(parsed);
           
@@ -49,7 +47,7 @@ export default function ArticlePage() {
         }
       }
     } catch (error) {
-      console.error("Error loading article content:", error);
+      console.error("Error loading news article:", error);
     } finally {
       setLoading(false);
     }
@@ -71,17 +69,17 @@ export default function ArticlePage() {
     return (
       <div className="container mx-auto px-4 py-32 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-        <p className="mt-4 text-muted-foreground font-medium">Lade Artikel...</p>
+        <p className="mt-4 text-muted-foreground font-medium">Lade News...</p>
       </div>
     );
   }
 
-  if (!article || !tournamentInfo) {
+  if (!article) {
     return (
       <div className="container mx-auto px-4 py-32 text-center">
-        <h1 className="text-3xl font-bold mb-4">Artikel nicht gefunden</h1>
-        <Link to={`/meisterschaft/${tournament}`}>
-          <Button>Zurück zur Übersicht</Button>
+        <h1 className="text-3xl font-bold mb-4">News nicht gefunden</h1>
+        <Link to="/news">
+          <Button>Zum News Archiv</Button>
         </Link>
       </div>
     );
@@ -90,10 +88,10 @@ export default function ArticlePage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-4xl mx-auto">
-        <Link to={`/meisterschaft/${tournament}`}>
+        <Link to="/news">
           <Button variant="ghost" className="mb-8 hover:bg-accent group">
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Zurück zu {tournamentInfo.name}
+            Zurück zum News Archiv
           </Button>
         </Link>
 

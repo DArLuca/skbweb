@@ -29,7 +29,7 @@ export default function TournamentPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await fetchArticles(tournament!, selectedYear);
+      const data = await fetchArticles("meisterschaft", selectedYear, tournament!);
       setArticles(data);
     } catch (error) {
       console.error("Error loading articles:", error);
